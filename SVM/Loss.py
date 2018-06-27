@@ -29,10 +29,7 @@ def L_i_vectorized(x, y, W):
   """
   delta = 1.0
   scores = W.dot(x)
-  # compute the margins for all classes in one vector operation
   margins = np.maximum(0, scores - scores[y] + delta)
-  # on y-th position scores[y] - scores[y] canceled and gave delta. We want
-  # to ignore the y-th position and only consider margin on max wrong class
   margins[y] = 0
   loss_i = np.sum(margins)
   return loss_i
@@ -52,12 +49,16 @@ def L(X, y, W):
   delta = 1.0
   matrix_of_scores = W.dot(X).T
   s_yi = matrix_of_scores[np.arange(y.shape[0]), y]
-  return matrix_of_scores
+  matrix_of_loss = matrix_of_scores - s_yi.reshape((y.shape[0], 1)) + delta
+  matrix_of_loss[np.arange(y.shape[0]), y] = 0
+  matrix_of_loss[matrix_of_loss < 0] = 0
+  return matrix_of_loss.sum()/matrix_of_loss.shape[0]
 
 
-W = np.array([[5,6,7,3], [2,4,5,1], [7,3,1,5]])
-y = np.array([1,0,2])
 
-X = np.array([[1,3,4], [5,6,3], [9,3,1], [8,4,2]])
+if __name__ == "__main__":
+    W = np.array([[5,6,7,3], [2,4,5,1], [7,3,1,5]])
+    y = np.array([1,0,2,2])
+    X = np.array([[1,3,4,8], [5,6,3,0], [9,3,1,9], [7,8,4,2]])
 
-print(L(X, y, W))
+    print(L(X, y, W))
